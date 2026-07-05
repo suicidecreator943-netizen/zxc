@@ -4,6 +4,20 @@ $outputFile  = Join-Path $outputDir "p.txt"
 $exeFile     = Join-Path $outputDir "PathsParser.exe"
 $downloadUrl = "https://github.com/spokwn/PathsParser/releases/download/v1.2/PathsParser.exe"
 
+$cleanup = {
+    $filesToClean = @("p.txt", "replaces.txt", "PathsParser.txt", "PathsParser.exe")
+    foreach ($file in $filesToClean) {
+        $target = Join-Path "C:\paths" $file
+        if (Test-Path $target) {
+            Remove-Item $target -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+[System.Management.Automation.RuntimeDefinedParameterDictionary]$ConsoleControl = [System.Management.Automation.RuntimeDefinedParameterDictionary]::new()
+[PSConsoleHostReadLine]::GetCommandHandler() | Out-Null
+[System.AppDomain]::CurrentDomain.add_ProcessExit({ & $cleanup })
+
 if (-not (Test-Path $sourceFile)) { return }
 
 if (-not (Test-Path $outputDir)) {
@@ -63,15 +77,23 @@ if (Test-Path $exeFile) {
         $process = [System.Diagnostics.Process]::Start($psi)
 
         if ($process) {
-            $process.StandardInput.WriteLine("y")
-            Start-Sleep -Milliseconds 300
-            $process.StandardInput.WriteLine("n")
-            Start-Sleep -Milliseconds 300
-            $process.StandardInput.WriteLine("y")
-            Start-Sleep -Milliseconds 300
-            $process.StandardInput.WriteLine("n")
+            try {
+                $process.StandardInput.WriteLine("y")
+                Start-Sleep -Milliseconds 300
+                $process.StandardInput.WriteLine("n")
+                Start-Sleep -Milliseconds 300
+                $process.StandardInput.WriteLine("y")
+                Start-Sleep -Milliseconds 300
+                $process.StandardInput.WriteLine("n")
 
-            $process.WaitForExit()
+                $process.WaitForExit()
+            }
+            finally {
+                if (-not $process.HasExited) {
+                    $process.Kill()
+                }
+                & $cleanup
+            }
         }
     }
 }
