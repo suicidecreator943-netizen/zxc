@@ -43,7 +43,8 @@ try {
     $rawText = [System.Text.Encoding]::Unicode.GetString($fileBytes)
     $sanitizedText = $rawText -replace "`0", " "
 
-    $pattern = '[a-zA-Z]:\/[^`"\?\*<>\|]+?\.(exe|dll|bat|cmd|msi)'
+    $pattern = '[a-zA-Z]:\/[^`"\?\*<>\|]+?\.[a-zA-Z0-9]{1,5}'
+
 
     $cleanedPaths = [regex]::Matches($sanitizedText, $pattern) | 
         ForEach-Object { $_.Value } | 
