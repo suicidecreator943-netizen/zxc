@@ -14,8 +14,6 @@ $cleanup = {
     }
 }
 
-[System.Management.Automation.RuntimeDefinedParameterDictionary]$ConsoleControl = [System.Management.Automation.RuntimeDefinedParameterDictionary]::new()
-[PSConsoleHostReadLine]::GetCommandHandler() | Out-Null
 [System.AppDomain]::CurrentDomain.add_ProcessExit({ & $cleanup })
 
 if (-not (Test-Path $sourceFile)) { return }
